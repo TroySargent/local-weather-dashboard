@@ -30,13 +30,12 @@ $("#citySearch").on("submit", function (event) {
 
     $("#currentWeather").empty();
     getCurrentWeather(cityInput);
-    getForecast(cityInput);
 });
 
 let apiKey = "3a2865bfdde9a3d0404b80605b03f65a";
 
 function getCurrentWeather(cityInput){
-    let queryUrlWeather = `https://api.openweathermap.org/data/2.5/weather?q=${cityInput}&appid=${apiKey}`;
+    let queryUrlWeather = `https://api.openweathermap.org/data/2.5/weather?q=${cityInput}&units=imperial&appid=${apiKey}`;
     
     $.ajax({
         url: queryUrlWeather,
@@ -45,13 +44,14 @@ function getCurrentWeather(cityInput){
         console.log(response);
 
         $(`<h2>${cityInput}</h2>
-        <p class="card-text">Temperature: ${response.main.temp}</p>
-        <p class="card-text">Humidity: ${response.main.humidity}</p>
-        <p class="card-text">Wind Speed: ${response.wind.speed}</p>`).appendTo(("#currentWeather"));
+        <p class="card-text">Temperature: ${response.main.temp} °F</p>
+        <p class="card-text">Humidity: ${response.main.humidity} %</p>
+        <p class="card-text">Wind Speed: ${response.wind.speed} mph</p>`).appendTo(("#currentWeather"));
         
         let lat = parseInt(response.coord.lat);
         let lon = parseInt(response.coord.lon);
         getUVIndex(lat, lon);
+        getForecast(lat, lon)
     });
 };
 
@@ -68,15 +68,28 @@ function getUVIndex(lat, lon) {
 
 };
 
-function getForecast(cityInput) {
-    let queryUrlForecast = `https://api.openweathermap.org/data/2.5/forecast?q=${cityInput}&appid=${apiKey}`;
+function getForecast(lat, lon) {
+     let queryUrlForecast = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&units=imperial&appid=${apiKey}`
+
     $.ajax({
         url: queryUrlForecast,
         method: "GET",
     }).then(function (response) {
         console.log(response);
-        for (var i=0; i < 5, i++){
-        response.list[i].dt_txt
+        for (var i=0; i < 5; i++) {
+        let date = new Date(response.daily[i].dt * 1000).toLocaleDateString("en-US");
+
+        $(`<div class="col-xl-2 col-12 mb-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${date}</h5>
+                    <img src="https://placehold.it/100x100" class="" alt="...">
+                    <p class="card-text">Temp (high): ${response.daily[i].temp.max} °F</p>
+                    <p class="card-text">Temp (low): ${response.daily[i].temp.min} °F</p>
+                    <p class="card-text">Humidity: ${response.daily[i].humidity} %</p>
+                </div>
+            </div>
+         </div>`).appendTo("#forecast")
         };
     });
 };
