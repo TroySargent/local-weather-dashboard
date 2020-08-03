@@ -2,8 +2,8 @@ let apiKey = "3a2865bfdde9a3d0404b80605b03f65a";
 let cityList = [];
 
 function renderBtns(){
-    $("#cityBtns").empty();
     cityList = JSON.parse(localStorage.getItem("cityList"));
+    $("#cityBtns").empty();
     if (cityList == null){
         cityList = [];
         $(`<h2 class="card-title">Please enter a city to get the weather.</h2>`).appendTo("#currentWeather")
@@ -15,32 +15,37 @@ function renderBtns(){
     };
 };
 
+function resetPage(){
+    $("#currentWeather").empty();
+    $("#forecast").empty(); 
+};
+
 $("#clearBtn").on("click", function () {
     localStorage.clear();
-    $("#currentWeather").empty();
+    resetPage();
+    $("#forecastHeader").addClass("d-none");
     renderBtns();
 });
 
 $("#citySearch").on("submit", function (event) {
     event.preventDefault(); 
     let cityInput = $("#cityInput").val();
+
     if (cityInput === "") {
         return;
     }
+
     cityList.push(cityInput);
     localStorage.setItem("cityList", JSON.stringify(cityList));
     
     renderBtns();
-    
-    $("#currentWeather").empty();
-    $("#forecast").empty(); 
+    resetPage();
     getCurrentWeather(cityInput);
 });
 
 $("#cityBtns").on("click", ".btn", function () {
     let cityInput = $(this).attr("data-name");
-    $("#currentWeather").empty();
-    $("#forecast").empty(); 
+    resetPage();
     getCurrentWeather(cityInput);
 });
 
@@ -51,7 +56,6 @@ function getCurrentWeather(cityInput){
         url: queryUrlWeather,
         method: "GET",
     }).then(function (response) {
-        console.log(response);
         let currentDateTime = new Date(response.dt * 1000).toLocaleString("en-US");
         
         $(`<h2>${cityInput} (${currentDateTime})</h2>
@@ -59,7 +63,8 @@ function getCurrentWeather(cityInput){
         <p class="card-text">Temperature: ${response.main.temp} °F</p>
         <p class="card-text">Humidity: ${response.main.humidity} %</p>
         <p class="card-text">Wind Speed: ${response.wind.speed} mph</p>`).appendTo(("#currentWeather"));
-        
+        $("#forecastHeader").removeClass("d-none")
+
         let lat = parseInt(response.coord.lat);
         let lon = parseInt(response.coord.lon);
         getForecast(lat, lon)
@@ -103,7 +108,9 @@ function getForecast(lat, lon) {
 };
 
 $(document).ready(function(){
+    if (cityList !== null){
     getCurrentWeather(cityList[cityList.length-1]);//get latest city on refresh
+    }
 });
 
 renderBtns();   
