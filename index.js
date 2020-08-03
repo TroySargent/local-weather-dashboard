@@ -72,9 +72,19 @@ function getCurrentWeather(cityInput){
 };
 
 function getUVIndex(response) {
-    console.log(response);
-    $(`<p class="card-text">UV Index: ${response.current.uvi}</p>`).appendTo(("#currentWeather"));
-    
+    UVIndex = response.current.uvi;
+    $(`<p class="card-text">UV Index: <span id="UVIndex" class="rounded p-2">${UVIndex}</span></p>`).appendTo(("#currentWeather"));
+    switch (true){
+        case (UVIndex < 5):
+            $("#UVIndex").addClass("bg-success");
+            break;
+        case (UVIndex < 8):
+            $("#UVIndex").addClass("bg-warning");
+            break;
+        case (UVIndex > 8):
+            $("#UVIndex").addClass("bg-danger");
+            break;
+    };
 };
 
 function getForecast(lat, lon) {
@@ -84,7 +94,6 @@ function getForecast(lat, lon) {
         url: queryUrlForecast,
         method: "GET",
     }).then(function (response) {
-        console.log(response);
         //skip current day in for loop, start at 1th indec
         for (var i=1; i < 6; i++) {
             let date = new Date(response.daily[i].dt * 1000).toLocaleDateString("en-US");
